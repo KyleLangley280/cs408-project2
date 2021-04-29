@@ -2,4 +2,6 @@
     <string name="app_name">Project #2</string>
     <string name="across">Across</string>
     <string name="down">Down</string>
+    <string name="dialog_title" />
+    <string name="dialog_message" />
 </resources>

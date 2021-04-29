@@ -18,6 +18,8 @@ public class CrosswordViewModel extends ViewModel {
     public static final char BLOCK_CHAR = '*';
     public static final char BLANK_CHAR = ' ';
 
+    private boolean gameOver;
+
     private static final String TAG = "CrosswordViewModel";
 
     private Context context;
@@ -72,6 +74,20 @@ public class CrosswordViewModel extends ViewModel {
         return puzzleHeight.getValue();
     }
 
+    public int getNumber(int row, int col) {
+        return numbers.getValue()[row][col];
+
+    }
+
+    public String getWord(String key) {
+        if (words.getValue().get(key) != null) {
+
+            return words.getValue().get(key).getWord();
+        } else {
+            return null;
+        }
+    }
+
     // Add Word to Grid
 
     private void addWordToGrid(String key) {
@@ -92,19 +108,66 @@ public class CrosswordViewModel extends ViewModel {
 
         // Place word letters into Letters array
 
-        /*
+        String direction = word.getDirection();
+        String wholeWord = word.getWord();
+        char[] chars = wholeWord.toCharArray();
 
-            INSERT YOUR CODE HERE
+        int spaceCounter = 0;
+        if (direction.equals("A")) {
+            for (char c : chars) {
+                letters.getValue()[row][column + spaceCounter] = BLANK_CHAR;
+                spaceCounter++;
+            }
+        } else {
+            for (char c : chars) {
+                letters.getValue()[row + spaceCounter][column] = BLANK_CHAR;
+                spaceCounter++;
+            }
+        }
+    }
+    public void actuallyAddWordToGrid(String key) {
 
-         */
+        // Get Word from collection (look up using the given key)
+
+        Word word = words.getValue().get(key);
+
+        // Get Word Properties
+
+        int row = word.getRow();
+        int column = word.getColumn();
+        int box = word.getBox();
+
+        // Place box number into Numbers array
+
+        numbers.getValue()[row][column] = box;
+
+        // Place word letters into Letters array
+
+        String direction = word.getDirection();
+        String wholeWord = word.getWord();
+        char[] chars = wholeWord.toCharArray();
+
+        //int spaceCounter = 0;
+        if (direction.equals("A")) {
+            for (char c : chars) {
+                letters.getValue()[row][column] = c;
+                column++;
+            }
+        } else {
+            for (char c : chars) {
+                letters.getValue()[row][column] = c;
+                row++;
+            }
+        }
+
 
     }
-
     // Add All Words to Grid (for testing only!)
 
     private void addAllWordsToGrid() {
         for (Map.Entry<String, Word> e : words.getValue().entrySet()) {
-            addWordToGrid( e.getKey() );
+            addWordToGrid(e.getKey());
+
         }
     }
 
@@ -139,14 +202,14 @@ public class CrosswordViewModel extends ViewModel {
 
                     // Append clue to StringBuilder buffer (clueAcrossBuffer or clueDownBuffer)
 
-                    /*
 
-                        INSERT YOUR CODE HERE
+                    if (word.getDirection().toUpperCase().equals("A")) {
+                        clueAcrossBuffer.append(word.getBox() + ": " + word.getClue() + "\n");
+                    } else {
+                        clueDownBuffer.append(word.getBox() + ": " + word.getClue() + "\n");
+                    }
 
-                     */
-
-                }
-                else if (fields.length == WORD_HEADER_FIELDS) {
+                } else if (fields.length == WORD_HEADER_FIELDS) {
 
                     // Header Row; get puzzle height and width
                     puzzleHeight.setValue(Integer.parseInt(fields[0]));
@@ -162,7 +225,9 @@ public class CrosswordViewModel extends ViewModel {
             cluesAcross.setValue(clueAcrossBuffer.toString());
             cluesDown.setValue(clueDownBuffer.toString());
 
-        } catch (Exception e) { Log.e(TAG, e.toString()); }
+        } catch (Exception e) {
+            Log.e(TAG, e.toString());
+        }
 
         // Initialize Letter and Number arrays
 
@@ -178,4 +243,18 @@ public class CrosswordViewModel extends ViewModel {
 
     }
 
+
+
+    public boolean gameOver() {
+        gameOver = true;
+        for (int i = 0; i < letters.getValue().length; ++i) {
+            for (int j = 0; j < letters.getValue()[i].length; ++j) {
+                if (letters.getValue()[i][j] == BLANK_CHAR) {
+                    gameOver = false;
+                    break;
+                }
+            }
+        }
+        return gameOver;
+    }
 }

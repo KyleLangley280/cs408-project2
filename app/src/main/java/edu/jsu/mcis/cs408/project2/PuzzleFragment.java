@@ -1,22 +1,28 @@
 package edu.jsu.mcis.cs408.project2;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class PuzzleFragment extends Fragment implements TabFragment {
 
@@ -26,6 +32,8 @@ public class PuzzleFragment extends Fragment implements TabFragment {
     private ArrayList<ArrayList<TextView>> gridNumberViews;
 
     private CrosswordViewModel model;
+
+    private String userInput;
 
     private int windowHeightDp, windowWidthDp, windowOverheadDp, puzzleHeight, puzzleWidth, numberSize;
 
@@ -95,10 +103,62 @@ public class PuzzleFragment extends Fragment implements TabFragment {
         int row = Integer.parseInt(fields[0]);
         int col = Integer.parseInt(fields[1]);
 
+        // Get the designated box number of the square
+
+        int boxNumber = model.getNumber(row, col);
+
         // Display Toast
 
         String message = row + "/" + col;
         Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+
+        // Alert Dialog as instructed from lectures
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this.getContext());
+        builder.setTitle(R.string.dialog_title);
+        builder.setMessage(R.string.dialog_message);
+        final EditText input = new EditText(this.getContext());
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface d, int i) {
+                userInput= input.getText().toString().toUpperCase();
+
+                // Make two words, one for across and one for down
+
+                String testingAcross = model.getWord(String.valueOf(boxNumber) + "A");
+                String testingDown = model.getWord(String.valueOf(boxNumber) + "D");
+
+
+                //Compare the word to the across facing word and if it matches, put it in
+                if(userInput.equals(testingAcross)){
+
+                    model.actuallyAddWordToGrid(String.valueOf(boxNumber) + "A");
+                    updateGrid();
+                }
+
+                //Compare the word to the down facing word and if it matches, put it in
+                if(userInput.equals(testingDown)){
+
+                    model.actuallyAddWordToGrid(String.valueOf(boxNumber) + "D");
+                    updateGrid();
+                }
+            }
+        });
+        builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+            @Override public void onClick(DialogInterface d, int i) {
+                userInput= "";
+                d.cancel();
+            }
+        });
+        AlertDialog aboutDialog= builder.show();
+
+        // If the gameOver returns true, show a toast that the game is over
+        if(model.gameOver() == true){
+            Toast.makeText(getActivity(), "The puzzle is complete, Good Job!", Toast.LENGTH_LONG).show();
+        }
+
 
     }
 
